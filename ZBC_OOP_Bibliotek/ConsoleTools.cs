@@ -8,6 +8,11 @@ namespace ZBC_OOP_Bibliotek
 {
     public static class ConsoleTools
     {
+        private static int warningX = 0;
+        private static int warningY = 0;
+        private static int warningMaxLenght = 20;
+        private static int warningLastLenght = 0;
+
         /// <summary>
         /// Asks the user to choose between two keys, and keeps asking until the input is valid
         /// </summary>
@@ -15,11 +20,15 @@ namespace ZBC_OOP_Bibliotek
         /// <param name="k2"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public static ConsoleKey GetUserChoice(ConsoleKey k1, ConsoleKey k2, string message)
+        public static ConsoleKey GetUserChoice(ConsoleKey k1, ConsoleKey k2, bool displayError, string message = "")
         {
             while (true)
             {
-                Console.WriteLine(message);
+                if(message != "")
+                {
+                    Console.WriteLine(message);
+                }
+                
 
                 ConsoleKeyInfo key = Console.ReadKey(true);
 
@@ -29,11 +38,46 @@ namespace ZBC_OOP_Bibliotek
                 }
                 else
                 {
-                    Console.WriteLine();
-                    Console.WriteLine("Invalid choice.");
-
+                    if (displayError)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Invalid choice.");
+                    }
                 }
             }
+        }
+
+        /// <summary>
+        /// Clears the last warning
+        /// </summary>
+        public static void ClearWarning()
+        {
+            Console.SetCursorPosition(warningX, warningY);
+            // Create an empty string of the lenght of the last warning
+            string clearString = new string(' ', warningLastLenght);
+            Console.Write(clearString);
+        }
+
+        public static void ShowWarning(string warning, ConsoleColor color)
+        {
+            ClearWarning();
+            Console.SetCursorPosition(warningX, warningY);
+
+            // Enforce max lenght
+            if(warning.Length > warningMaxLenght)
+            {
+                warning = warning.Substring(0, warningMaxLenght);
+            }
+            Console.ForegroundColor = color;
+            Console.Write(warning);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        public static void SetWarningOptions(int location_x, int location_y, int maxLenght)
+        {
+            warningX = location_x;
+            warningY = location_y;
+            warningMaxLenght = maxLenght;
         }
 
         /// <summary>
@@ -93,6 +137,27 @@ namespace ZBC_OOP_Bibliotek
             }
 
             return double.Parse(userInput);
+        }
+
+        /// <summary>
+        /// Prints a single line to the specified location, with the specified color
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="color"></param>
+        public static void PrintLine(string line, int x, int y, ConsoleColor color)
+        {
+            if(color == ConsoleColor.Black)
+            {
+                color = ConsoleColor.White;
+            }
+
+            Console.ForegroundColor = color;
+
+            Console.SetCursorPosition(x, y);
+
+            Console.Write(line);
         }
 
 
@@ -161,6 +226,7 @@ namespace ZBC_OOP_Bibliotek
             return true;
         }
 
+
         /// <summary>
         /// Requests the user to enter an integer with the corresponding request string, and
         /// makes sure the input is sanitized
@@ -207,7 +273,7 @@ namespace ZBC_OOP_Bibliotek
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        static bool IsInputOnlyDigits(string input)
+        public static bool IsInputOnlyDigits(string input)
         {
             foreach (char c in input)
             {

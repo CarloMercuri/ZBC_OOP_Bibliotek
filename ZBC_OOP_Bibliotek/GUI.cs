@@ -8,72 +8,125 @@ namespace ZBC_OOP_Bibliotek
 {
     public static class GUI
     {
-        private static string[] bookAsciiLeft;
-        private static string[] bookAsciiRight;
+        private static string[] titleAscii;
 
-        private static int pilesStartY = 15;
 
-        private static int selectionPileStartX = 5;
-        private static bool selectionPileIsEven;
-
-        private static int basketPileStartX = 12;
-        private static bool basketPileIsEven;
-
+        /// <summary>
+        /// Sets up the gui
+        /// </summary>
         public static void InitializeGUI()
         {
             InitializeAsciis();
+            DrawTitle();
+            ConsoleTools.SetWarningOptions(2, 11, 50);
         }
 
+        /// <summary>
+        /// Initializes the asciis for this program
+        /// </summary>
         private static void InitializeAsciis()
         {
-            bookAsciiLeft = new string[]
+            titleAscii = new string[]
             {
-                @"   _____",
-                @"  /    /|",
-                @" /    //",
-                @"(====|/",
-            };
-
-            bookAsciiRight = new string[]
-            {
-                @"   ______",
-                @"  /     /|",
-                @" /     //",
-                @"(=====|/",
+                @"   ______           __      __       __  ",
+                @"  / ____/___ ______/ /___  / /____  / /__",
+                @" / /   / __ `/ ___/ / __ \/ __/ _ \/ //_/",
+                @"/ /___/ /_/ / /  / / /_/ / /_/  __/ ,<   ",
+                @"\____/\__,_/_/  /_/\____/\__/\___/_/|_|  ",
             };
         }
 
-        public static void ClearSelectionPile()
-        {
 
+        /// <summary>
+        /// Draws the Carlotek title
+        /// </summary>
+        private static void DrawTitle()
+        {
+            ConsoleTools.PrintArray(titleAscii, 50, 1, null, ConsoleColor.White);
         }
 
-        public static void DrawSelectionPile(List<Book> booksList)
+        /// <summary>
+        /// Clears the menu
+        /// </summary>
+        public static void ClearSelectionMenu()
         {
-            ClearSelectionPile();
-            selectionPileIsEven = false;
-
-            for (int i = 0; i < booksList.Count; i++)
+            for (int i = 13; i < Console.WindowHeight; i++)
             {
-                DrawBookOnSelectionPile(booksList[i], i);
-                selectionPileIsEven = !selectionPileIsEven;
+                Console.SetCursorPosition(0, i);
+                Console.Write("                                                          ");
             }
         }
 
-        private static void DrawBookOnSelectionPile(Book book, int index)
+        /// <summary>
+        /// Clears the list of the loaned objects
+        /// </summary>
+        public static void ClearLoanedStack()
         {
-            int x = selectionPileStartX;
+            int y = 15;
 
-            if (!selectionPileIsEven)
+            Console.SetCursorPosition(90, y);
+
+            for (int i = 0; i < 24; i++)
             {
-                ConsoleTools.PrintArray(bookAsciiLeft, selectionPileStartX, pilesStartY - index, null, ConsoleColor.White);
-            } 
-            else
+                Console.Write("                                                                               ");
+                Console.SetCursorPosition(90, y + i);
+            }
+        }
+
+        /// <summary>
+        /// Draws the loaned stack
+        /// </summary>
+        public static void DrawLoanedStack()
+        {
+            Console.SetCursorPosition(90, 12);
+            Console.Write("Books you want to loan:");
+
+
+            ClearLoanedStack();
+
+            int y = 26 - BibliotekLogic.UserChosenBooks.Count; // last item always at line 26, so we start accordingly
+            int x = 90;
+
+            Console.SetCursorPosition(x, y);
+
+            // Print them downwards
+            foreach(Book b in BibliotekLogic.UserChosenBooks)
             {
-                ConsoleTools.PrintArray(bookAsciiRight, selectionPileStartX + 1, pilesStartY - index, null, ConsoleColor.White);
+                Console.Write(b.ToString());
+                y++;
+                Console.SetCursorPosition(x, y);
+            }
+        }
+
+        /// <summary>
+        /// Draws the aviable books selection
+        /// </summary>
+        public static void DrawSelectionMenu()
+        {
+            // Clear it every time
+            ClearSelectionMenu();
+
+            // Copy it to an array
+            string[] books = new string[BibliotekLogic.AviableBooks.Count];
+
+            for (int i = 0; i < BibliotekLogic.AviableBooks.Count; i++)
+            {
+                // Add an index to the left STARTING AT 1. Have to offset it later when selecting it
+                string newName = BibliotekLogic.AviableBooks[i].ToString().Insert(0, $"{i + 1} - ");
+                books[i] = newName;
             }
 
-            
+            ConsoleTools.PrintLine("Select book(s) you wish to loan: ", 2, 13, ConsoleColor.White);
+
+            // After printing the array, we are going to place the cursor at the end of the previous printline
+            (int Left, int Top) curLoc = Console.GetCursorPosition();
+
+            // Print the array            
+            ConsoleTools.PrintArray(books, 2, 15, null, ConsoleColor.White);
+
+            // Place the cursor as explained before
+            Console.SetCursorPosition(curLoc.Left + 1, curLoc.Top);
+
         }
     }
 }
