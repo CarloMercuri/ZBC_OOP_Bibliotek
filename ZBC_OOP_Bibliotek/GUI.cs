@@ -1,30 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ZBC_OOP_Bibliotek
 {
-    public static class GUI
+    public class GUI
     {
-        private static string[] titleAscii;
+
+        // Console size hack, makes it so you cannot resize it
+
+        private const int MF_BYCOMMAND = 0x00000000;
+        public const int SC_CLOSE = 0xF060;
+        public const int SC_MINIMIZE = 0xF020;
+        public const int SC_MAXIMIZE = 0xF030;
+        public const int SC_SIZE = 0xF000;
+
+        [DllImport("user32.dll")]
+        public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+
+        [DllImport("kernel32.dll", ExactSpelling = true)]
+        private static extern IntPtr GetConsoleWindow();
+
+        private string[] titleAscii;
+
+        private BibliotekLogic _logic;
 
 
         /// <summary>
         /// Sets up the gui
         /// </summary>
-        public static void InitializeGUI()
+        public void InitializeGUI()
         {
+            // Size and lock the console. No scrolling, no resizing
+            Console.SetWindowSize(180, 40);
+            Console.SetBufferSize(180, 40);
+            Console.Title = "Bibliotek";
+            LockConsole();
+
+            // UI Initialization
             InitializeAsciis();
             DrawTitle();
             ConsoleTools.SetWarningOptions(2, 11, 50);
+
+            _logic = new BibliotekLogic();
+            _logic.InitializeBibliotek(this);
+
+            DrawSelectionMenu();
+
+            _logic.StartMainLogic();
         }
 
         /// <summary>
         /// Initializes the asciis for this program
         /// </summary>
-        private static void InitializeAsciis()
+        private void InitializeAsciis()
         {
             titleAscii = new string[]
             {
@@ -40,7 +75,7 @@ namespace ZBC_OOP_Bibliotek
         /// <summary>
         /// Draws the Carlotek title
         /// </summary>
-        private static void DrawTitle()
+        private void DrawTitle()
         {
             ConsoleTools.PrintArray(titleAscii, 50, 1, null, ConsoleColor.White);
         }
@@ -48,7 +83,7 @@ namespace ZBC_OOP_Bibliotek
         /// <summary>
         /// Clears the menu
         /// </summary>
-        public static void ClearSelectionMenu()
+        public void ClearSelectionMenu()
         {
             for (int i = 13; i < Console.WindowHeight; i++)
             {
@@ -60,7 +95,7 @@ namespace ZBC_OOP_Bibliotek
         /// <summary>
         /// Clears the list of the loaned objects
         /// </summary>
-        public static void ClearLoanedStack()
+        public void ClearLoanedStack()
         {
             int y = 15;
 
@@ -76,7 +111,7 @@ namespace ZBC_OOP_Bibliotek
         /// <summary>
         /// Draws the loaned stack
         /// </summary>
-        public static void DrawLoanedStack()
+        public void DrawLoanedStack()
         {
             Console.SetCursorPosition(90, 12);
             Console.Write("Books you want to loan:");
@@ -84,13 +119,13 @@ namespace ZBC_OOP_Bibliotek
 
             ClearLoanedStack();
 
-            int y = 26 - BibliotekLogic.UserChosenBooks.Count; // last item always at line 26, so we start accordingly
+            int y = 26 - _logic.GetUserStackCount(); // last item always at line 26, so we start accordingly
             int x = 90;
 
             Console.SetCursorPosition(x, y);
 
             // Print them downwards
-            foreach(Book b in BibliotekLogic.UserChosenBooks)
+            foreach(Book b in _logic.GetUserStack())
             {
                 Console.Write(b.ToString());
                 y++;
@@ -101,18 +136,21 @@ namespace ZBC_OOP_Bibliotek
         /// <summary>
         /// Draws the aviable books selection
         /// </summary>
-        public static void DrawSelectionMenu()
+        public void DrawSelectionMenu()
         {
             // Clear it every time
             ClearSelectionMenu();
 
-            // Copy it to an array
-            string[] books = new string[BibliotekLogic.AviableBooks.Count];
+            int availableCount = _logic.GetAvailableBooksCount();
 
-            for (int i = 0; i < BibliotekLogic.AviableBooks.Count; i++)
+            // Copy it to an array
+            string[] books = new string[availableCount];
+
+            for (int i = 0; i < availableCount; i++)
             {
                 // Add an index to the left STARTING AT 1. Have to offset it later when selecting it
-                string newName = BibliotekLogic.AviableBooks[i].ToString().Insert(0, $"{i + 1} - ");
+                //string newName = _logic.AviableBooks[i].ToString().Insert(0, $"{i + 1} - ");
+                string newName = _logic.GetAvailableBookAtIndex(i).ToString().Insert(0, $"{i + 1} - ");
                 books[i] = newName;
             }
 
@@ -127,6 +165,21 @@ namespace ZBC_OOP_Bibliotek
             // Place the cursor as explained before
             Console.SetCursorPosition(curLoc.Left + 1, curLoc.Top);
 
+        }
+
+        /// <summary>
+        /// Makes it so you cannot resize or maximize it
+        /// </summary>
+        private void LockConsole()
+        {
+            IntPtr handle = GetConsoleWindow();
+            IntPtr sysMenu = GetSystemMenu(handle, false);
+
+            if (handle != IntPtr.Zero)
+            {
+                DeleteMenu(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
+                DeleteMenu(sysMenu, SC_SIZE, MF_BYCOMMAND);
+            }
         }
     }
 }

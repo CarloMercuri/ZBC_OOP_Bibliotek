@@ -54,6 +54,10 @@ namespace ZBC_OOP_Bibliotek
 
         }
 
+        /// <summary>
+        /// Formats the print string correctly
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return authorName + " - " + title;

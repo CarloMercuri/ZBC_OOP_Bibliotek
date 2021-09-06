@@ -6,41 +6,10 @@ namespace ZBC_OOP_Bibliotek
 {
     class Program
     {
-
-        // Console size hack, makes it so you cannot resize it
-
-        private const int MF_BYCOMMAND = 0x00000000;
-        public const int SC_CLOSE = 0xF060;
-        public const int SC_MINIMIZE = 0xF020;
-        public const int SC_MAXIMIZE = 0xF030;
-        public const int SC_SIZE = 0xF000;
-
-        [DllImport("user32.dll")]
-        public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
-
-        [DllImport("kernel32.dll", ExactSpelling = true)]
-        private static extern IntPtr GetConsoleWindow();
-
         static void Main(string[] args)
         {
-            // Size and lock the console. No scrolling, no resizing
-            Console.SetWindowSize(180, 40);
-            Console.SetBufferSize(180, 40);
-
-            Console.Title = "Bibliotek";
-            LockConsole();
-
-            BibliotekLogic.InitializeBibliotek();
-
-            GUI.InitializeGUI();
-
-            GUI.DrawSelectionMenu();
-
-            BibliotekLogic.StartMainLogic();
-
+            GUI gui = new GUI();
+            gui.InitializeGUI();
 
            
 
@@ -52,20 +21,7 @@ namespace ZBC_OOP_Bibliotek
 
 
 
-        /// <summary>
-        /// Makes it so you cannot resize or maximize it
-        /// </summary>
-        private static void LockConsole()
-        {
-            IntPtr handle = GetConsoleWindow();
-            IntPtr sysMenu = GetSystemMenu(handle, false);
-
-            if (handle != IntPtr.Zero)
-            {
-                DeleteMenu(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
-                DeleteMenu(sysMenu, SC_SIZE, MF_BYCOMMAND);
-            }
-        }
+      
     }
 }
 
