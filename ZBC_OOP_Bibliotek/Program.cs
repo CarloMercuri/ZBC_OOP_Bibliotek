@@ -11,10 +11,6 @@ namespace ZBC_OOP_Bibliotek
             GUI gui = new GUI();
             gui.InitializeGUI();
 
-           
-
-
-
             Console.ReadKey();
         }
 
